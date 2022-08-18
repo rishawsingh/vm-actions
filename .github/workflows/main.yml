@@ -1,4 +1,4 @@
-name: Public IP and Deploy to azure resource behind nsg
+name: Public IP and Deploy to azure resource behind nsg and SSH to VM in azure
 
 on: push
 
@@ -41,7 +41,7 @@ jobs:
           host: ${{ secrets.HOST }}
           user: azureuser
           key: ${{ secrets.PRIVATE_KEY}}
-          command: whoami && sudo apt install nginx -y
+          command: whoami && echo "The path variable is $PATH" && echo "Hello everyone my name is Rishaw"
 
       - name: Remove NSG Rule
         uses: venura9/manage-nsg@master
