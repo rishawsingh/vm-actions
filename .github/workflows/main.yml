@@ -1,0 +1,52 @@
+name: Public IP and Deploy to azure resource behind nsg
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploying to Azure
+    steps:
+    - name: Public IP
+      id: ip
+      uses: haythem/public-ip@v1.2
+
+    - name: Print Public IP
+      run: |
+        echo ${{ steps.ip.outputs.ipv4 }}
+        echo ${{ steps.ip.outputs.ipv6 }}
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+      - name: dig +short myip.opendns.com @resolver1.opendns.com
+        run: dig +short myip.opendns.com @resolver1.opendns.com
+
+      - name: Add NSG Rule
+        uses: venura9/manage-nsg@master
+        id: rule
+        with:
+          rule-inbound-port: 22
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          rule-nsg-resource-group-name: workflow-trial
+          rule-nsg-name: linux1-nsg
+
+      - name: Print Created NSG Rule Name
+        run: echo "Rule Name ${{ steps.rule.outputs.rule_name }}"
+      
+      - name: ls -a via ssh
+        uses: fifsky/ssh-action@master
+        with:          
+          host: ${{ secrets.HOST }}
+          user: azureuser
+          key: ${{ secrets.PRIVATE_KEY}}
+          command: whoami && sudo apt install nginx -y
+
+      - name: Remove NSG Rule
+        uses: venura9/manage-nsg@master
+        with:
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          rule-id-for-removal: ${{ steps.rule.outputs.rule_name }}
+          rule-nsg-resource-group-name: workflow-trial
+          rule-nsg-name: linux1-nsg
