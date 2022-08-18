@@ -1,5 +1,5 @@
+# author: Rishaw Kumar
 name: Public IP and Deploy to azure resource behind nsg and SSH to VM in azure
-
 on: push
 
 jobs:
